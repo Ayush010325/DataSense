@@ -1,20 +1,20 @@
 # DataSense Lab
 
-DataSense Lab is a smart data understanding and experimentation platform built for data analysts and ML students. It provides an intuitive interface for uploading datasets, automatically generating insights, performing visual data exploration, and running quick machine learning experiments.
+DataSense Lab helps you get oriented in a dataset quickly. Upload a CSV or Excel file, review the profile, explore patterns with charts, and run lightweight machine learning experiments from a Streamlit workspace backed by FastAPI.
 
 ## Features
 
-* **File Upload**: Easily ingest CSV and Excel datasets.
-* **Dataset Profiling**: Automatically infer data types, summary statistics, missing values, and outliers.
-* **Smart Insights Engine**: A rule-based system that flags dataset issues like extreme skewness, high missing ratios, or potential ID columns.
-* **Visual Explorer**: Dynamically generate histograms, boxplots, bar charts, heatmaps, and scatter plots.
-* **ML Sandbox**: Build automated machine learning pipelines with preprocessing logic for classification, regression, and clustering tasks using `scikit-learn`.
-* **Experiment History**: Save and track your trained models and their metrics.
-* **What-If Lab**: Reload a trained model pipeline and provide custom inputs to see real-time predictions based on your saved experiment.
+* **File upload**: Bring in CSV and Excel datasets.
+* **Dataset profile**: Review inferred data types, summary statistics, missing values, duplicates, and outliers.
+* **Insights**: Surface practical issues such as skewed columns, high missingness, and likely ID fields.
+* **Visual explorer**: Create histograms, boxplots, bar charts, heatmaps, scatter plots, pie charts, and line charts.
+* **ML sandbox**: Train quick classification, regression, and clustering experiments with `scikit-learn`.
+* **Experiment history**: Revisit saved models and compare their metrics.
+* **What-if lab**: Load a saved experiment and try custom inputs to see predictions.
 
 ## Architecture & Technology Stack
 
-The project strictly follows a decoupled API-first architecture:
+The app is split into a FastAPI backend and a Streamlit frontend:
 * **Backend**: FastAPI
 * **Database**: PostgreSQL with SQLAlchemy 2.0 ORM
 * **Data Processing**: Pandas, NumPy
@@ -32,9 +32,9 @@ Update your `backend/.env` file with the correct `DATABASE_URL`.
 ```bash
 cd backend
 python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+source venv/bin/activate
 pip install -r requirements.txt
-alembic upgrade head      # Run database migrations
+python ../scripts/initialize_db.py
 uvicorn app.main:app --reload
 ```
 The FastAPI server will run at `http://localhost:8000`.
@@ -43,7 +43,7 @@ The FastAPI server will run at `http://localhost:8000`.
 ```bash
 cd frontend
 python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+source venv/bin/activate
 pip install -r requirements.txt
 streamlit run app.py
 ```
@@ -51,10 +51,10 @@ The Streamlit app will run at `http://localhost:8501`.
 
 ## Usage
 
-1. Open the Streamlit dashboard.
-2. Go to the **Upload** page to ingest a dataset.
-3. Review the **Overview** and **Insights** to understand your data.
-4. Go to the **Visual Explorer** to plot graphs interactively.
-5. Enter the **ML Sandbox** to define a task, select features, and train a model.
-6. Visit the **Experiment History** to review past models.
-7. Open the **What-If Lab** to predict outcomes using hypothetical input values.
+1. Open the Streamlit app.
+2. Upload a dataset or select one you already added.
+3. Review the overview and insights to understand what is in the file.
+4. Build charts in the Visual Explorer.
+5. Train a quick model in the ML Sandbox.
+6. Check past runs in Experiment History.
+7. Use the What-If Lab to test new input values against a saved model.

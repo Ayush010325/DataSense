@@ -3,12 +3,13 @@ from sqlalchemy import select
 from typing import Optional, List
 from app.models.dataset import Dataset
 
-def create_dataset(db: Session, name: str, filename: str, file_path: str, row_count: int) -> Dataset:
+def create_dataset(db: Session, name: str, filename: str, file_path: str, row_count: int, col_count: int = 0) -> Dataset:
     db_dataset = Dataset(
         name=name,
         filename=filename,
         file_path=file_path,
-        row_count=row_count
+        row_count=row_count,
+        col_count=col_count
     )
     db.add(db_dataset)
     db.commit()

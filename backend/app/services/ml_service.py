@@ -9,14 +9,14 @@ def train_and_save_experiment(db: Session, request: TrainExperimentRequest) -> d
     dataset = get_dataset(db, request.dataset_id)
     if not dataset:
         raise HTTPException(status_code=404, detail="Dataset not found")
-        
+
     try:
         result = train_experiment_pipeline(request, dataset.file_path)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Training failed: {str(e)}")
-        
+
     exp_data = {
         "dataset_id": dataset.id,
         "name": request.name,
@@ -28,7 +28,7 @@ def train_and_save_experiment(db: Session, request: TrainExperimentRequest) -> d
         "metrics_json": result["metrics_json"],
         "model_filepath": result["model_filepath"]
     }
-    
+
     return create_experiment(db, exp_data)
 
 def get_experiment_details(db: Session, experiment_id: int):

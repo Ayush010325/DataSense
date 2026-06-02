@@ -2,11 +2,11 @@ from typing import List, Dict, Any
 
 def generate_insights(analysis: Dict[str, Any]) -> List[Dict[str, str]]:
     insights = []
-    
+
     shape = analysis.get("dataset_shape", {})
     rows = shape.get("row_count", 0)
     cols = shape.get("column_count", 0)
-    
+
     size_msg = "small"
     if rows > 100000:
         size_msg = "large"
@@ -17,7 +17,7 @@ def generate_insights(analysis: Dict[str, Any]) -> List[Dict[str, str]]:
         "severity": "info",
         "category": "distribution"
     })
-    
+
     duplicates = analysis.get("duplicates_summary", {}).get("duplicate_row_count", 0)
     if duplicates > 0:
         insights.append({
@@ -31,36 +31,36 @@ def generate_insights(analysis: Dict[str, Any]) -> List[Dict[str, str]]:
             "severity": "success",
             "category": "duplicates"
         })
-        
+
     metadata_rows = analysis.get("column_metadata_rows", [])
     numeric_summary = analysis.get("numeric_summary", {})
-    
+
     for col_data in metadata_rows:
         col = col_data["column_name"]
         missing_ratio = col_data["missing_ratio"]
         unique_count = col_data["unique_count"]
-        
+
         if missing_ratio > 0.3:
             insights.append({
                 "message": f"Column '{col}' has {missing_ratio:.1%} missing values.",
                 "severity": "warning",
                 "category": "missing_values"
             })
-            
+
         if unique_count == rows and rows > 0:
             insights.append({
                 "message": f"Column '{col}' has unique values for every row. It might be an ID column.",
                 "severity": "info",
                 "category": "distribution"
             })
-            
+
         if missing_ratio == 0 and unique_count > 1 and unique_count < rows:
             insights.append({
                 "message": f"Column '{col}' is complete with no missing values.",
                 "severity": "success",
                 "category": "column_quality"
             })
-            
+
     for col, stats in numeric_summary.items():
         skew = stats.get("skewness", 0.0)
         if skew and abs(skew) > 1.0:
@@ -70,7 +70,7 @@ def generate_insights(analysis: Dict[str, Any]) -> List[Dict[str, str]]:
                 "severity": "warning",
                 "category": "skewness"
             })
-            
+
         outliers = stats.get("outlier_count", 0)
         if outliers > 0 and rows > 0:
             outlier_ratio = outliers / rows

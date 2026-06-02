@@ -6,7 +6,7 @@ from app.models.column_metadata import ColumnMetadata
 def create_column_metadata_bulk(db: Session, dataset_id: int, rows: List[Dict[str, Any]]):
     stmt = delete(ColumnMetadata).where(ColumnMetadata.dataset_id == dataset_id)
     db.execute(stmt)
-    
+
     db_rows = []
     for row in rows:
         metadata = ColumnMetadata(

@@ -3,6 +3,7 @@ from typing import List, Optional, Dict, Any
 from datetime import datetime
 
 class TrainExperimentRequest(BaseModel):
+    model_config = {"protected_namespaces": ()}
     dataset_id: int
     name: str
     task_type: str
@@ -17,6 +18,10 @@ class TrainExperimentRequest(BaseModel):
     n_clusters: Optional[int] = 3
 
 class ExperimentResponse(BaseModel):
+    model_config = {
+        "protected_namespaces": (),
+        "from_attributes": True
+    }
     id: int
     dataset_id: int
     name: str
@@ -29,16 +34,14 @@ class ExperimentResponse(BaseModel):
     model_filepath: str
     created_at: datetime
 
-    class Config:
-        from_attributes = True
-
 class ExperimentListItem(BaseModel):
+    model_config = {
+        "protected_namespaces": (),
+        "from_attributes": True
+    }
     id: int
     dataset_id: int
     name: str
     task_type: str
     model_type: str
     created_at: datetime
-
-    class Config:
-        from_attributes = True

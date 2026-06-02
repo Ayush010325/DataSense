@@ -4,12 +4,15 @@ import pandas as pd
 from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException
 from sqlalchemy.orm import Session
 from app.db.session import get_db
-from app.schemas import Dataset
+from app.schemas.dataset import Dataset
 from app.services.dataset_service import dataset_service__create_or_update
+from app.ml.analyzer import analyze_dataset
+from app.crud.column_metadata import create_column_metadata_bulk
 
 router = APIRouter()
 
 STORAGE_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data_storage")
+
 
 @router.post("/upload", response_model=Dataset)
 async def upload_dataset(
@@ -21,10 +24,10 @@ async def upload_dataset(
         raise HTTPException(status_code=400, detail="Only CSV or XLSX files are allowed")
 
     os.makedirs(STORAGE_DIR, exist_ok=True)
-    
+
     unique_filename = f"dataset_{uuid.uuid4().hex}_{file.filename}"
     file_path = os.path.join(STORAGE_DIR, unique_filename)
-    
+
     try:
         content = await file.read()
         with open(file_path, "wb") as f:
@@ -37,7 +40,7 @@ async def upload_dataset(
             df = pd.read_csv(file_path)
         else:
             df = pd.read_excel(file_path)
-        row_count = df.shape[0]
+        row_count, col_count = df.shape
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Failed to parse file: {str(e)}")
 
@@ -46,7 +49,14 @@ async def upload_dataset(
         name=name,
         filename=file.filename,
         file_path=file_path,
-        row_count=row_count
+        row_count=row_count,
+        col_count=col_count
     )
-    
+
+    try:
+        analysis = analyze_dataset(df)
+        create_column_metadata_bulk(db, dataset_record.id, analysis["column_metadata_rows"])
+    except Exception:
+        pass
+
     return dataset_record

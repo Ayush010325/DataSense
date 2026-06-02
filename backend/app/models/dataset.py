@@ -11,6 +11,7 @@ class Dataset(Base):
     filename = Column(String(255))
     file_path = Column(String(512))
     row_count = Column(Integer, nullable=True)
+    col_count = Column(Integer, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     columns = relationship("ColumnMetadata", back_populates="dataset", cascade="all, delete-orphan")

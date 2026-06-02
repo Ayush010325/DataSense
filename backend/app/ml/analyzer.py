@@ -2,17 +2,25 @@ import pandas as pd
 import numpy as np
 import os
 from typing import Dict, Any
+from functools import lru_cache
 
-def load_dataset_file(file_path: str) -> pd.DataFrame:
-    if not os.path.exists(file_path):
-        raise ValueError(f"File not found: {file_path}")
-    
+
+@lru_cache(maxsize=16)
+def _cached_load(file_path: str, mtime: float) -> pd.DataFrame:
     if file_path.endswith('.csv'):
         return pd.read_csv(file_path)
     elif file_path.endswith('.xlsx'):
         return pd.read_excel(file_path)
     else:
         raise ValueError("Unsupported file format. Only CSV and XLSX are allowed.")
+
+
+def load_dataset_file(file_path: str) -> pd.DataFrame:
+    if not os.path.exists(file_path):
+        raise ValueError(f"File not found: {file_path}")
+    mtime = os.path.getmtime(file_path)
+    return _cached_load(file_path, mtime)
+
 
 def detect_column_type(series: pd.Series) -> str:
     if pd.api.types.is_numeric_dtype(series):
@@ -33,7 +41,7 @@ def detect_column_type(series: pd.Series) -> str:
 
 def analyze_dataset(df: pd.DataFrame) -> Dict[str, Any]:
     row_count, col_count = df.shape
-    
+
     if row_count == 0:
         return {
             "dataset_shape": {"row_count": 0, "column_count": col_count},
@@ -61,11 +69,11 @@ def analyze_dataset(df: pd.DataFrame) -> Dict[str, Any]:
     for col in df.columns:
         col_type = detect_column_type(df[col])
         column_types[col] = col_type
-        
+
         missing_count = int(missing_by_col[col])
         missing_ratio = float(missing_count / row_count) if row_count > 0 else 0.0
         unique_count = int(df[col].nunique(dropna=True))
-        
+
         metadata_rows.append({
             "column_name": col,
             "data_type": col_type,
@@ -82,7 +90,7 @@ def analyze_dataset(df: pd.DataFrame) -> Dict[str, Any]:
                 q3 = s.quantile(0.75)
                 iqr = q3 - q1
                 outliers = int(((s < (q1 - 1.5 * iqr)) | (s > (q3 + 1.5 * iqr))).sum())
-                
+
                 numeric_summary[col] = {
                     "mean": float(s.mean()),
                     "median": float(s.median()),
