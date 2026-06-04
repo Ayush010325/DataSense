@@ -1,7 +1,7 @@
 import requests
 import streamlit as st
 
-BASE_URL = "http://localhost:8000"
+BASE_URL = "https://datasense-backend-wr78.onrender.com"
 
 def get_health() -> bool:
     try:
