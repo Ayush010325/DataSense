@@ -6,6 +6,8 @@ class DatasetCreate(BaseModel):
     name: str
     filename: str
     file_path: Optional[str] = None
+    file_size: Optional[int] = None
+    content_type: Optional[str] = None
     row_count: Optional[int] = None
     col_count: Optional[int] = None
 

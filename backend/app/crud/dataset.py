@@ -3,11 +3,24 @@ from sqlalchemy import select
 from typing import Optional, List
 from app.models.dataset import Dataset
 
-def create_dataset(db: Session, name: str, filename: str, file_path: str, row_count: int, col_count: int = 0) -> Dataset:
+def create_dataset(
+    db: Session,
+    name: str,
+    filename: str,
+    row_count: int,
+    col_count: int = 0,
+    file_path: str | None = None,
+    file_data: bytes | None = None,
+    file_size: int | None = None,
+    content_type: str | None = None
+) -> Dataset:
     db_dataset = Dataset(
         name=name,
         filename=filename,
         file_path=file_path,
+        file_data=file_data,
+        file_size=file_size,
+        content_type=content_type,
         row_count=row_count,
         col_count=col_count
     )

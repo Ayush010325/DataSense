@@ -12,12 +12,19 @@ from app.ml.plotter import (
     get_chart_data_for_line
 )
 
+from app.services.analysis_service import get_dataset_analysis
+from app.crud.column_metadata import get_columns_for_dataset
+
 def _validate_dataset(db: Session, dataset_id: int):
     if not get_dataset(db, dataset_id):
         raise HTTPException(status_code=404, detail="Dataset not found")
 
 def get_plottable_columns_service(db: Session, dataset_id: int) -> dict:
     _validate_dataset(db, dataset_id)
+    cols = get_columns_for_dataset(db, dataset_id)
+    if not cols:
+        # Trigger analysis to populate column metadata
+        get_dataset_analysis(db, dataset_id)
     return get_plottable_columns(db, dataset_id)
 
 def get_histogram_data(db: Session, dataset_id: int, column: str) -> dict:

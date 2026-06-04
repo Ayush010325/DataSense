@@ -23,6 +23,9 @@ class DistributionChartData(BaseModel):
     column_name: str
     values: List[Any]
     type: str
+    # Pre-aggregated counts for categorical columns (avoids frontend pandas issues)
+    labels: List[str] = []
+    counts: List[int] = []
 
 class BoxplotChartData(BaseModel):
     column_name: str

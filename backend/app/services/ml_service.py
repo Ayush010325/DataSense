@@ -4,6 +4,7 @@ from app.crud.dataset import get_dataset
 from app.crud.experiment import create_experiment, get_experiment, get_experiments_for_dataset
 from app.schemas.experiment import TrainExperimentRequest
 from app.ml.trainer import train_experiment_pipeline
+from app.ml.analyzer import load_dataset_record
 
 def train_and_save_experiment(db: Session, request: TrainExperimentRequest) -> dict:
     dataset = get_dataset(db, request.dataset_id)
@@ -11,7 +12,8 @@ def train_and_save_experiment(db: Session, request: TrainExperimentRequest) -> d
         raise HTTPException(status_code=404, detail="Dataset not found")
 
     try:
-        result = train_experiment_pipeline(request, dataset.file_path)
+        df = load_dataset_record(dataset)
+        result = train_experiment_pipeline(request, df)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:

@@ -1,5 +1,5 @@
 import streamlit as st
-import plotly.express as px
+import altair as alt
 import pandas as pd
 from utils.api_client import get_plottable_columns, train_experiment
 
@@ -22,42 +22,42 @@ num_cols = plottable.get("numeric", [])
 cat_cols = plottable.get("categorical", [])
 all_cols = num_cols + cat_cols
 
-with st.form("ml_config_form"):
-    st.subheader("Experiment Setup")
-    exp_name = st.text_input("Experiment name", value="First pass")
+st.subheader("Experiment Setup")
+exp_name = st.text_input("Experiment name", value="First pass")
 
-    col1, col2, col3 = st.columns(3)
+col1, col2, col3 = st.columns(3)
 
-    with col1:
-        task_type = st.selectbox("Task", ["classification", "regression", "clustering"])
-        model_type_options = {
-            "classification": ["logistic_regression", "decision_tree", "random_forest"],
-            "regression": ["linear_regression", "decision_tree", "random_forest"],
-            "clustering": ["kmeans"]
-        }
+with col1:
+    task_type = st.selectbox("Task", ["classification", "regression", "clustering"])
+    model_type_options = {
+        "classification": ["logistic_regression", "decision_tree", "random_forest"],
+        "regression": ["linear_regression", "decision_tree", "random_forest"],
+        "clustering": ["kmeans"]
+    }
 
-    with col2:
-        target_col = st.selectbox("Target column", [""] + all_cols)
+with col2:
+    target_col = st.selectbox("Target column", [""] + all_cols)
 
-    with col3:
-        model_type = st.selectbox("Model", model_type_options.get(task_type, []))
+with col3:
+    model_type = st.selectbox("Model", model_type_options.get(task_type, []))
 
-    features = st.multiselect("Feature columns", all_cols)
+features = st.multiselect("Feature columns", all_cols)
 
-    st.subheader("Preprocessing")
-    col4, col5, col6 = st.columns(3)
-    with col4:
-        missing_strat = st.selectbox("Fill missing numeric values with", ["mean", "median"])
-    with col5:
-        scale_strat = st.selectbox("Scale numeric values with", ["standard", "minmax", "none"])
-    with col6:
-        test_size = st.slider("Test split", 0.1, 0.5, 0.2)
+st.subheader("Preprocessing")
+col4, col5, col6 = st.columns(3)
+with col4:
+    missing_strat = st.selectbox("Fill missing numeric values with", ["mean", "median"])
+with col5:
+    scale_strat = st.selectbox("Scale numeric values with", ["standard", "minmax", "none"])
+with col6:
+    test_size = st.slider("Test split", 0.1, 0.5, 0.2)
 
-    n_clusters = 3
-    if task_type == "clustering":
-        n_clusters = st.number_input("Number of clusters", min_value=2, max_value=20, value=3)
+n_clusters = 3
+if task_type == "clustering":
+    n_clusters = st.number_input("Number of clusters", min_value=2, max_value=20, value=3)
 
-    submit = st.form_submit_button("Run experiment")
+submit = st.button("Run experiment")
+
 
 if submit:
     if task_type in ["classification", "regression"] and not target_col:
@@ -111,8 +111,16 @@ if submit:
                     st.subheader("Top Features")
                     fi = metrics["feature_importance"]
                     df_fi = pd.DataFrame(fi)
-                    fig = px.bar(df_fi, x="importance", y="feature", orientation="h", title="Top feature weights")
-                    fig.update_layout(yaxis={'categoryorder':'total ascending'})
-                    st.plotly_chart(fig, use_container_width=True)
+                    chart = (
+                        alt.Chart(df_fi)
+                        .mark_bar(color="#4C9BE8")
+                        .encode(
+                            x=alt.X("importance:Q", title="Importance"),
+                            y=alt.Y("feature:N", title="Feature", sort="-x"),
+                            tooltip=["feature", "importance"],
+                        )
+                        .properties(title="Top feature weights", height=300)
+                    )
+                    st.altair_chart(chart, use_container_width=True)
             else:
                 st.error("Training did not finish. Review the setup and try again.")

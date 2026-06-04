@@ -114,12 +114,7 @@ def extract_feature_importance(estimator, preprocessor, numeric_cols, categorica
     result = [{"feature": feature_names[i], "importance": float(importances[i])} for i in sorted_idx]
     return result
 
-def train_experiment_pipeline(request: TrainExperimentRequest, file_path: str) -> dict:
-    if file_path.endswith('.csv'):
-        df = pd.read_csv(file_path)
-    else:
-        df = pd.read_excel(file_path)
-
+def train_experiment_pipeline(request: TrainExperimentRequest, df: pd.DataFrame) -> dict:
     features = request.feature_columns
     if not features:
         features = df.columns.tolist()

@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import os
+from io import BytesIO
 from typing import Dict, Any
 from functools import lru_cache
 
@@ -20,6 +21,24 @@ def load_dataset_file(file_path: str) -> pd.DataFrame:
         raise ValueError(f"File not found: {file_path}")
     mtime = os.path.getmtime(file_path)
     return _cached_load(file_path, mtime)
+
+
+def load_dataset_bytes(filename: str, file_data: bytes) -> pd.DataFrame:
+    buffer = BytesIO(file_data)
+    if filename.endswith('.csv'):
+        return pd.read_csv(buffer)
+    elif filename.endswith('.xlsx'):
+        return pd.read_excel(buffer)
+    else:
+        raise ValueError("Unsupported file format. Only CSV and XLSX are allowed.")
+
+
+def load_dataset_record(dataset) -> pd.DataFrame:
+    if getattr(dataset, "file_data", None):
+        return load_dataset_bytes(dataset.filename, dataset.file_data)
+    if getattr(dataset, "file_path", None):
+        return load_dataset_file(dataset.file_path)
+    raise ValueError("Dataset file content is missing.")
 
 
 def detect_column_type(series: pd.Series) -> str:

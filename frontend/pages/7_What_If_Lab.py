@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-import plotly.express as px
+import altair as alt
 from utils.api_client import get_experiment, predict_experiment, get_dataset_analysis
 
 st.set_page_config(page_title="What-If Lab", layout="wide")
@@ -82,8 +82,16 @@ if submit:
                 fi = result["feature_contributions"]
                 df_fi = pd.DataFrame(fi)
                 if not df_fi.empty and 'importance' in df_fi.columns and 'feature' in df_fi.columns:
-                    fig = px.bar(df_fi, x="importance", y="feature", orientation="h")
-                    fig.update_layout(yaxis={'categoryorder':'total ascending'})
-                    st.plotly_chart(fig, use_container_width=True)
+                    chart = (
+                        alt.Chart(df_fi)
+                        .mark_bar(color="#4C9BE8")
+                        .encode(
+                            x=alt.X("importance:Q", title="Importance"),
+                            y=alt.Y("feature:N", title="Feature", sort="-x"),
+                            tooltip=["feature", "importance"],
+                        )
+                        .properties(height=300)
+                    )
+                    st.altair_chart(chart, use_container_width=True)
         else:
             st.error("Prediction failed.")

@@ -1,5 +1,4 @@
-import os
-import uuid
+from io import BytesIO
 import pandas as pd
 from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException
 from sqlalchemy.orm import Session
@@ -11,8 +10,6 @@ from app.crud.column_metadata import create_column_metadata_bulk
 
 router = APIRouter()
 
-STORAGE_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data_storage")
-
 
 @router.post("/upload", response_model=Dataset)
 async def upload_dataset(
@@ -23,23 +20,20 @@ async def upload_dataset(
     if not file.filename.endswith(('.csv', '.xlsx')):
         raise HTTPException(status_code=400, detail="Only CSV or XLSX files are allowed")
 
-    os.makedirs(STORAGE_DIR, exist_ok=True)
-
-    unique_filename = f"dataset_{uuid.uuid4().hex}_{file.filename}"
-    file_path = os.path.join(STORAGE_DIR, unique_filename)
-
     try:
         content = await file.read()
-        with open(file_path, "wb") as f:
-            f.write(content)
+        if not content:
+            raise HTTPException(status_code=400, detail="Uploaded file is empty")
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to save file: {str(e)}")
+        if isinstance(e, HTTPException):
+            raise
+        raise HTTPException(status_code=500, detail=f"Failed to read file: {str(e)}")
 
     try:
         if file.filename.endswith('.csv'):
-            df = pd.read_csv(file_path)
+            df = pd.read_csv(BytesIO(content))
         else:
-            df = pd.read_excel(file_path)
+            df = pd.read_excel(BytesIO(content))
         row_count, col_count = df.shape
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Failed to parse file: {str(e)}")
@@ -48,9 +42,11 @@ async def upload_dataset(
         db=db,
         name=name,
         filename=file.filename,
-        file_path=file_path,
         row_count=row_count,
-        col_count=col_count
+        col_count=col_count,
+        file_data=content,
+        file_size=len(content),
+        content_type=file.content_type
     )
 
     try:
